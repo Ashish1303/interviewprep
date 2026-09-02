@@ -37,6 +37,7 @@ import { CleanCodeAndReusableComponentsPage } from './pages/CleanCodeAndReusable
 import { RealWorldReactInterviewScenariosPage } from './pages/RealWorldReactInterviewScenariosPage';
 import { CodePlaygroundPage } from './pages/CodePlaygroundPage';
 import { ReactInterviewQuestionsPage } from './pages/ReactInterviewQuestionsPage';
+import { LandingPage } from './pages/LandingPage';
 import { sectionLabels, type SectionKey } from './data/sectionTypes';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { toggleCompletion } from './store/topicsSlice';
@@ -177,6 +178,7 @@ function AppShell() {
 
   const handleToggleComplete = (topicSlug: string) => dispatch(toggleCompletion({ section, slug: topicSlug }));
 
+  if (location.pathname === '/') return <LandingPage />;
   if (location.pathname.startsWith('/playground')) return <CodePlaygroundPage />;
 
   return (
