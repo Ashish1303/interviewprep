@@ -161,6 +161,8 @@ function AppShell() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [query, setQuery] = useState('');
+  const [mobileTopicsOpen, setMobileTopicsOpen] = useState(true);
+  const [mobileSectionsOpen, setMobileSectionsOpen] = useState(true);
   const section = getSection(location.pathname);
   const topics = useAppSelector((state) => state.topics.topicsBySection[section]);
   const completed = useAppSelector((state) => state.topics.completedBySection[section]);
@@ -183,7 +185,16 @@ function AppShell() {
 
   return (
     <div className="app-shell">
-      <Sidebar query={query} onQueryChange={setQuery} completed={completed} sectionName={sectionLabels[section]} items={filteredTopics.map((topic) => ({ id: topic.slug, label: topic.title, summary: topic.summary, questions: topic.questions }))} activeItemId={activeTopic?.slug} onSelectItem={(id) => navigate(`${sectionPaths[section]}/${id}`)} sectionPath={sectionPaths[section]} />
+      <header className="mobile-app-header" aria-label="Mobile navigation controls">
+        <div className="brand-inline"><span className="brand-dot">R</span><span className="brand-text">React Prep</span></div>
+        <div className="mobile-header-actions">
+          <button type="button" className={`mobile-menu-toggle ${mobileTopicsOpen ? 'active' : ''}`} onClick={() => setMobileTopicsOpen((open) => !open)} aria-expanded={mobileTopicsOpen}>☰ Topics</button>
+          <button type="button" className={`mobile-menu-toggle ${mobileSectionsOpen ? 'active' : ''}`} onClick={() => setMobileSectionsOpen((open) => !open)} aria-expanded={mobileSectionsOpen}>☷ Sections</button>
+          <ThemeToggle />
+        </div>
+        {mobileSectionsOpen && <nav className="mobile-section-nav" aria-label="Mobile section navigation">{(Object.keys(sectionLabels) as SectionKey[]).map((item) => <button key={item} type="button" className={section === item ? 'active' : ''} onClick={() => navigate(sectionPaths[item])}>{sectionLabels[item]}</button>)}<button type="button" className={location.pathname.startsWith('/playground') ? 'active' : ''} onClick={() => navigate('/playground')}>Code Playground</button></nav>}
+      </header>
+      <div className={`mobile-sidebar-wrap ${mobileTopicsOpen ? 'is-open' : 'is-closed'}`}><Sidebar query={query} onQueryChange={setQuery} completed={completed} sectionName={sectionLabels[section]} items={filteredTopics.map((topic) => ({ id: topic.slug, label: topic.title, summary: topic.summary, questions: topic.questions }))} activeItemId={activeTopic?.slug} onSelectItem={(id) => navigate(`${sectionPaths[section]}/${id}`)} sectionPath={sectionPaths[section]} /></div>
       <main className="main-panel">
         <header className="app-topbar" aria-label="Main navigation">
           <div className="brand-inline"><span className="brand-dot">R</span><span className="brand-text">React Prep</span></div>
