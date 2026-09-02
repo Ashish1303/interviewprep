@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import { Sidebar } from './components/Sidebar';
@@ -34,6 +34,8 @@ import { AdvancedPatternsPage } from './pages/AdvancedPatternsPage';
 import { ScalableArchitecturePage } from './pages/ScalableArchitecturePage';
 import { CleanCodeAndReusableComponentsPage } from './pages/CleanCodeAndReusableComponentsPage';
 import { RealWorldReactInterviewScenariosPage } from './pages/RealWorldReactInterviewScenariosPage';
+import { CodePlaygroundPage } from './pages/CodePlaygroundPage';
+import { ReactInterviewQuestionsPage } from './pages/ReactInterviewQuestionsPage';
 import { sectionLabels, type SectionKey } from './data/sectionTypes';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { toggleCompletion } from './store/topicsSlice';
@@ -68,6 +70,46 @@ function ProgressBar({ section }: { section: SectionKey }) {
   );
 }
 
+function ReactTopicRoute({ onToggleComplete }: { onToggleComplete: (slug: string) => void }) {
+  const slug = useLocation().pathname.split('/').filter(Boolean).pop();
+  const completed = useAppSelector((state) => state.topics.completedBySection.react);
+  const props = (topicSlug: string) => ({ completed: completed.includes(topicSlug), onToggleComplete });
+  const pages: Record<string, ReactNode> = {
+    'react-fundamentals': <ReactFundamentalsPage {...props('react-fundamentals')} />,
+    hooks: <HooksPage {...props('hooks')} />,
+    'component-lifecycle': <ComponentLifecyclePage {...props('component-lifecycle')} />,
+    'state-management': <StateManagementPage {...props('state-management')} />,
+    'props-vs-state': <PropsVsStatePage {...props('props-vs-state')} />,
+    'controlled-vs-uncontrolled-components': <ControlledVsUncontrolledComponentsPage {...props('controlled-vs-uncontrolled-components')} />,
+    'forms-and-validation': <FormsAndValidationPage {...props('forms-and-validation')} />,
+    'event-handling': <EventHandlingPage {...props('event-handling')} />,
+    'conditional-rendering': <ConditionalRenderingPage {...props('conditional-rendering')} />,
+    'lists-and-keys': <ListsAndKeysPage {...props('lists-and-keys')} />,
+    'component-composition': <ComponentCompositionPage {...props('component-composition')} />,
+    'custom-hooks': <CustomHooksPage {...props('custom-hooks')} />,
+    'react-router': <ReactRouterPage {...props('react-router')} />,
+    'api-integration': <ApiIntegrationPage {...props('api-integration')} />,
+    'performance-optimization': <PerformanceOptimizationPage {...props('performance-optimization')} />,
+    'react-memo-usememo-usecallback': <ReactMemoUsememoUsecallbackPage {...props('react-memo-usememo-usecallback')} />,
+    'reconciliation-and-virtual-dom': <ReconciliationAndVirtualDomPage {...props('reconciliation-and-virtual-dom')} />,
+    'rendering-and-rerendering': <RenderingAndRerenderingPage {...props('rendering-and-rerendering')} />,
+    refs: <RefsPage {...props('refs')} />,
+    'error-boundaries': <ErrorBoundariesPage {...props('error-boundaries')} />,
+    'suspense-and-lazy-loading': <SuspenseAndLazyLoadingPage {...props('suspense-and-lazy-loading')} />,
+    testing: <TestingPage {...props('testing')} />,
+    accessibility: <AccessibilityPage {...props('accessibility')} />,
+    security: <SecurityPage {...props('security')} />,
+    'ssr-csr-react-server-components': <SsrCsrReactServerComponentsPage {...props('ssr-csr-react-server-components')} />,
+    'typescript-with-react': <TypescriptWithReactPage {...props('typescript-with-react')} />,
+    'advanced-patterns': <AdvancedPatternsPage {...props('advanced-patterns')} />,
+    'scalable-architecture': <ScalableArchitecturePage {...props('scalable-architecture')} />,
+    'clean-code-and-reusable-components': <CleanCodeAndReusableComponentsPage {...props('clean-code-and-reusable-components')} />,
+    'real-world-react-interview-scenarios': <RealWorldReactInterviewScenariosPage {...props('real-world-react-interview-scenarios')} />,
+  };
+
+  return pages[slug ?? ''] ?? <Navigate to="/react" replace />;
+}
+
 function ReactRoutes({ query, onToggleComplete }: { query: string; onToggleComplete: (slug: string) => void }) {
   const completed = useAppSelector((state) => state.topics.completedBySection.react);
   const props = (slug: string) => ({ completed: completed.includes(slug), onToggleComplete });
@@ -76,6 +118,8 @@ function ReactRoutes({ query, onToggleComplete }: { query: string; onToggleCompl
     <Routes>
       <Route path="/" element={<Navigate to="/react" replace />} />
       <Route path="/react" element={<HomePage query={query} completed={completed} />} />
+      <Route path="/react/interview-questions" element={<ReactInterviewQuestionsPage />} />
+      <Route path="/react/:topicSlug" element={<ReactTopicRoute onToggleComplete={onToggleComplete} />} />
       <Route path="/react-fundamentals" element={<ReactFundamentalsPage {...props('react-fundamentals')} />} />
       <Route path="/hooks" element={<HooksPage {...props('hooks')} />} />
       <Route path="/component-lifecycle" element={<ComponentLifecyclePage {...props('component-lifecycle')} />} />
@@ -120,6 +164,9 @@ function AppShell() {
   const completed = useAppSelector((state) => state.topics.completedBySection[section]);
   const slug = location.pathname.split('/').filter(Boolean).pop();
   const activeTopic = topics.find((topic) => topic.slug === slug) ?? topics[0];
+  const activeIndex = topics.findIndex((topic) => topic.slug === activeTopic?.slug);
+  const previousTopic = activeIndex > 0 ? topics[activeIndex - 1] : undefined;
+  const nextTopic = activeIndex >= 0 && activeIndex < topics.length - 1 ? topics[activeIndex + 1] : undefined;
   const filteredTopics = useMemo(() => {
     const search = query.trim().toLowerCase();
     return search
@@ -129,6 +176,8 @@ function AppShell() {
 
   const handleToggleComplete = (topicSlug: string) => dispatch(toggleCompletion({ section, slug: topicSlug }));
 
+  if (location.pathname.startsWith('/playground')) return <CodePlaygroundPage />;
+
   return (
     <div className="app-shell">
       <Sidebar query={query} onQueryChange={setQuery} completed={completed} sectionName={sectionLabels[section]} items={filteredTopics.map((topic) => ({ id: topic.slug, label: topic.title, summary: topic.summary, questions: topic.questions }))} activeItemId={activeTopic?.slug} onSelectItem={(id) => navigate(`${sectionPaths[section]}/${id}`)} sectionPath={sectionPaths[section]} />
@@ -137,12 +186,13 @@ function AppShell() {
           <div className="brand-inline"><span className="brand-dot">R</span><span className="brand-text">React Prep</span></div>
           <nav className="top-nav" aria-label="Section navigation">
             {(Object.keys(sectionLabels) as SectionKey[]).map((item) => <button key={item} type="button" className={`nav-pill ${section === item ? 'active' : ''}`} onClick={() => navigate(sectionPaths[item])} aria-pressed={section === item}>{sectionLabels[item]}</button>)}
+            <button type="button" className="nav-pill playground-nav" onClick={() => navigate('/playground')}>Code Playground</button>
           </nav>
         </header>
         <ProgressBar section={section} />
         {section === 'react' ? <ReactRoutes query={query} onToggleComplete={handleToggleComplete} /> : <Routes>
-          <Route path={sectionPaths[section]} element={<TopicDetailPage topic={activeTopic} completed={completed.includes(activeTopic.slug)} onToggleComplete={handleToggleComplete} />} />
-          <Route path={`${sectionPaths[section]}/:topicSlug`} element={<TopicDetailPage topic={activeTopic} completed={completed.includes(activeTopic.slug)} onToggleComplete={handleToggleComplete} />} />
+          <Route path={sectionPaths[section]} element={<TopicDetailPage topic={activeTopic} completed={completed.includes(activeTopic.slug)} onToggleComplete={handleToggleComplete} previousTopic={previousTopic} nextTopic={nextTopic} onNavigate={(nextSlug) => navigate(`${sectionPaths[section]}/${nextSlug}`)} />} />
+          <Route path={`${sectionPaths[section]}/:topicSlug`} element={<TopicDetailPage topic={activeTopic} completed={completed.includes(activeTopic.slug)} onToggleComplete={handleToggleComplete} previousTopic={previousTopic} nextTopic={nextTopic} onNavigate={(nextSlug) => navigate(`${sectionPaths[section]}/${nextSlug}`)} />} />
           <Route path="*" element={<Navigate to={sectionPaths[section]} replace />} />
         </Routes>}
       </main>

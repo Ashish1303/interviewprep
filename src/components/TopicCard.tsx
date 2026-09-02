@@ -17,7 +17,7 @@ export function TopicCard({ topic, isComplete }: TopicCardProps) {
       <p>{topic.summary}</p>
       <div className="topic-card-footer">
         <span>{topic.questions.length} questions</span>
-        <span>Open ?</span>
+        <span>Open </span>
       </div>
     </Link>
   );

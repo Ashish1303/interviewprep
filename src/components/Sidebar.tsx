@@ -85,11 +85,14 @@ export function Sidebar({
             <NavLink to={sectionPath} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} end>
               Overview
             </NavLink>
+            <NavLink to={`${sectionPath}/interview-questions`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <span>Interview Questions</span>
+            </NavLink>
 
             {filteredTopics.map((topic) => (
               <NavLink
                 key={topic.id}
-                to={`/${topic.id}`}
+                to={`${sectionPath}/${topic.id}`}
                 className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
               >
                 <span>{topic.label}</span>
