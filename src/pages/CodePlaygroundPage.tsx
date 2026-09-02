@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 type FileKey = 'html' | 'css' | 'javascript' | 'typescript';
 type Layout = 'columns' | 'rows' | 'preview-right' | 'preview-bottom';
-type Theme = 'dark' | 'light' | 'system';
 
 type PlaygroundState = {
   html: string;
@@ -46,7 +46,6 @@ export function CodePlaygroundPage() {
   });
   const [autoRun, setAutoRun] = useState(true);
   const [layout, setLayout] = useState<Layout>('preview-right');
-  const [theme, setTheme] = useState<Theme>('dark');
   const [fontSize, setFontSize] = useState(14);
   const [consoleLines, setConsoleLines] = useState<string[]>(['Ready. Run your code to see output here.']);
   const [resources, setResources] = useState<string[]>([]);
@@ -109,7 +108,7 @@ export function CodePlaygroundPage() {
   const previewDocument = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${playground.css}</style>${resources.filter((url) => url.endsWith('.css')).map((url) => `<link rel="stylesheet" href="${url}">`).join('')}</head><body>${playground.html}<script>['log','warn','error'].forEach(level => { const original = console[level]; console[level] = (...args) => { parent.postMessage({ type: 'console', level, value: args.map(String).join(' ') }, '*'); original(...args); }; });\ntry { ${executableCode.replace(/<\/script>/gi, '<\\/script>')} } catch (error) { parent.postMessage({ type: 'console', level: 'error', value: error.stack || String(error) }, '*'); }<\/script>${resources.filter((url) => url.endsWith('.js')).map((url) => `<script src="${url}"></script>`).join('')}</body></html>`;
 
   return (
-    <div className={`playground ${theme}`}>
+    <div className="playground">
       <header className="playground-toolbar">
         <div className="playground-title"><span className="playground-icon">&lt;/&gt;</span><div><strong>Code Playground</strong><span className="playground-breadcrumb">Dashboard / Workspace</span></div></div>
         <div className="toolbar-actions">
@@ -118,6 +117,7 @@ export function CodePlaygroundPage() {
           <button className="tool-button" onClick={() => setConsoleLines(['Stopped.'])} title="Stop execution">■ Stop</button>
           <button className="tool-button" onClick={clearWorkspace} title="Clear workspace">Clear</button>
           <button className={`toggle ${autoRun ? 'on' : ''}`} onClick={() => setAutoRun((current) => !current)} aria-pressed={autoRun}>Auto Run <span /></button>
+          <ThemeToggle />
           <button className="icon-button" onClick={() => setShowSettings((current) => !current)} title="Editor settings">⚙</button>
           <button className="share-button" onClick={() => setShowShare(true)}>Share</button>
         </div>
@@ -141,7 +141,7 @@ export function CodePlaygroundPage() {
 
       <section className="bottom-panel"><div className="bottom-tabs"><button className="active">☷ Console <span>{consoleLines.length}</span></button><button>⚠ Problems <span>0</span></button><button>▣ Output</button><button>⇄ Network</button></div><div className="console-output">{consoleLines.map((line, index) => <div key={`${line}-${index}`} className={line.includes('✕') ? 'error' : ''}><span>{String(index + 1).padStart(2, '0')}</span>{line}</div>)}</div></section>
 
-      {showSettings && <div className="playground-popover settings-popover"><div className="popover-heading"><strong>Editor settings</strong><button onClick={() => setShowSettings(false)}>×</button></div><label>Theme<select value={theme} onChange={(event) => setTheme(event.target.value as Theme)}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label><label>Font size <input type="range" min="12" max="20" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /><span>{fontSize}px</span></label><label className="setting-check"><input type="checkbox" checked={autoRun} onChange={(event) => setAutoRun(event.target.checked)} /> Auto-run changes</label><label className="setting-check"><input type="checkbox" defaultChecked /> Word wrap</label><label className="setting-check"><input type="checkbox" defaultChecked /> Line numbers</label></div>}
+      {showSettings && <div className="playground-popover settings-popover"><div className="popover-heading"><strong>Editor settings</strong><button onClick={() => setShowSettings(false)}>×</button></div><label>Font size <input type="range" min="12" max="20" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /><span>{fontSize}px</span></label><label className="setting-check"><input type="checkbox" checked={autoRun} onChange={(event) => setAutoRun(event.target.checked)} /> Auto-run changes</label><label className="setting-check"><input type="checkbox" defaultChecked /> Word wrap</label><label className="setting-check"><input type="checkbox" defaultChecked /> Line numbers</label></div>}
       {showShare && <div className="modal-backdrop"><div className="share-modal"><div className="popover-heading"><div><span className="eyebrow">Publish workspace</span><h2>Share your playground</h2></div><button onClick={() => setShowShare(false)}>×</button></div><p>Anyone with this link can open a read-only snapshot of your current workspace.</p><input readOnly value={`${window.location.origin}/playground/${makeId()}`} /><div className="share-actions"><button onClick={() => navigator.clipboard?.writeText(window.location.href)}>Copy link</button><button onClick={() => navigator.clipboard?.writeText(`<iframe src="${window.location.href}" title="Code Playground"></iframe>`)}>Copy embed</button></div></div></div>}
     </div>
   );

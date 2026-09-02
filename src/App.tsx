@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import { Sidebar } from './components/Sidebar';
+import { ThemeToggle } from './components/ThemeToggle';
 import { TopicDetailPage } from './components/TopicDetailPage';
 import { HomePage } from './pages/HomePage';
 import { ReactFundamentalsPage } from './pages/ReactFundamentalsPage';
@@ -188,6 +189,7 @@ function AppShell() {
             {(Object.keys(sectionLabels) as SectionKey[]).map((item) => <button key={item} type="button" className={`nav-pill ${section === item ? 'active' : ''}`} onClick={() => navigate(sectionPaths[item])} aria-pressed={section === item}>{sectionLabels[item]}</button>)}
             <button type="button" className="nav-pill playground-nav" onClick={() => navigate('/playground')}>Code Playground</button>
           </nav>
+          <ThemeToggle />
         </header>
         <ProgressBar section={section} />
         {section === 'react' ? <ReactRoutes query={query} onToggleComplete={handleToggleComplete} /> : <Routes>
